@@ -1,0 +1,49 @@
+.network-portfolio {
+  display       : flex;
+  min-width     : 0;
+  align-content : flex-start;
+  align-items   : flex-start;
+  flex-flow     : row wrap;
+}
+
+/* .network-portfolio::after { content: ""; flex: auto; } */
+
+.network-portfolio-item {
+  margin     : 0 2% 2% 0;
+  align-self : flex-start;
+}
+
+/* target last row */
+/**
+ * .network-portfolio-item:nth-child(3n+1):nth-last-child(-n+3),
+ * .network-portfolio-item:nth-child(3n+1):nth-last-child(-n+3) ~
+ * .network-portfolio-item { margin-left: 0; }
+ */
+
+.network-portfolio-item a {
+  text-decoration : none;
+}
+
+/* hack for dss-standard theme */
+.network-portfolio-item br,
+.network-portfolio-item p {
+  display : none;
+}
+
+.network-portfolio-item .network-portfolio-title {
+  margin-top : 0;
+}
+
+.network-portfolio-item h2 {
+  overflow      : hidden;
+  text-overflow : ellipsis;
+  white-space   : nowrap;
+}
+
+.network-portfolio-item .network-portfolio-description {
+  display : none;
+}
+
+.network-portfolio-item .link-list {
+  display : none;
+}
