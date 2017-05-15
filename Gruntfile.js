@@ -164,7 +164,7 @@ module.exports = function (grunt) {
 		        options: {
 		            domainPath: '/languages',
 		            mainFile: '<%= pkg.main %>',
-		            potFilename: 'clou2png.pot',
+		            potFilename: '<%= pkg.name %>.pot',
 		            potHeaders: {
 		                poedit: true,
 		                'x-poedit-keywordslist': true
@@ -216,7 +216,7 @@ module.exports = function (grunt) {
 	grunt.registerTask( 'changelog', [ 'githubChanges:dist'] );
 
 
-	grunt.registerTask( 'do_svn', [ 'svn_export', 'copy:svn_assets', 'copy:svn_trunk', 'copy:svn_tag', 'push_svn' ] );
+	// grunt.registerTask( 'do_svn', [ 'svn_export', 'copy:svn_assets', 'copy:svn_trunk', 'copy:svn_tag', 'push_svn' ] );
 	// grunt.registerTask( 'update_svn', [ 'copy:svn_assets', 'copy:svn_trunk', 'copy:svn_tag', 'push_svn' ] );
 	grunt.registerTask( 'do_git', [  'gitcommit', 'gittag', 'gitpush' ] );
 	grunt.registerTask( 'release', [ 'pre_vcs',  'do_git', /*'do_svn',*/ 'clean:post_build' ] );
