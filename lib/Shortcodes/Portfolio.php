@@ -61,7 +61,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$attributes['orderby']  = filter_var( $attributes['orderby'],  FILTER_SANITIZE_STRING, array( 'default' => 'modified=DESC&title=DESC' ) );
 
 			$current_site = get_current_blog_id();
-			if ( false === ( $network_blogs = get_site_transient( 'network_blogs' ) ) ) {
+			// if ( false === ( $network_blogs = get_site_transient( 'network_blogs' ) ) ) {
 				if ( version_compare( $wp_version, '4.6' ) >= 0 ) {
 					$network_blogs = get_sites( array(
 							'site__not_in' => array(), // Array of site IDs to exclude.
@@ -80,7 +80,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					} );
 				}
 				set_site_transient( 'network_blogs', $network_blogs, $attributes['expires'] );
-			}
+			// }
 
 			$thumb_settings = array(
 				'width'         => \NetworkPortfolio\Helper::get_option( 'networkportfolio[width]', '430' ),
