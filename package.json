@@ -1,8 +1,8 @@
 {
   "name": "network-portfolio",
   "title": "Network Portfolio",
-  "version": "1.0.9",
-  "git_tag": "1.0.9",
+  "version": "1.0.10",
+  "git_tag": "1.0.10",
   "description": "List, with thumbnails, sites in your network.",
   "main": "network-portfolio.php",
   "scripts": {
