@@ -163,6 +163,11 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					} // End if().
 					// $description  = get_bloginfo( 'description' );
 					$network_blog_details = get_blog_details( $network_blog['blog_id'] );
+
+					// @codingStandardsIgnoreStart
+					printf( '<!--%s -->', print_r( $network_blog_details, true ) );
+					// @codingStandardsIgnoreEnd
+
 					$header_image_url = '';
 					$site_url = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) :  set_url_scheme( '//' . $network_blog_details->domain  . $network_blog_details->path );
 
