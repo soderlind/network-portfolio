@@ -9,7 +9,7 @@
 /* .network-portfolio::after { content: ""; flex: auto; } */
 
 .network-portfolio-item {
-  margin     : 0 2% 2% 0;
+  margin     : 0 2% 4% 0;
   align-self : flex-start;
 }
 
