@@ -171,6 +171,10 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					$header_image_url = '';
 					$site_url = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) :  set_url_scheme( '//' . $network_blog_details->domain  . $network_blog_details->path );
 
+					// @codingStandardsIgnoreStart
+					printf( '<!-- site_url: %s -->', print_r( $site_url, true ) );
+					// @codingStandardsIgnoreEnd
+
 					// switch_to_blog( $current_site );
 					$thumb_settings['url'] = $site_url;
 					$thumb_settings['title'] = $network_blog_details->blogname;
