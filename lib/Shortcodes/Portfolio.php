@@ -2,7 +2,7 @@
 
 namespace NetworkPortfolio\Shortcodes;
 if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
-	class Portfolio /* extends Shortcode */ {
+	class Portfolio {
 
 		/**
 		 * Singleton from: from http://stackoverflow.com/a/15870364/1434155
@@ -30,9 +30,9 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 				add_action( 'manage_sites_custom_column', array( $this, 'manage_columns' ), 10, 2 );
 				add_action( 'wpmu_new_blog', array( $this, 'new_site_deletes_transient' ), 10, 6 );
 				add_action( 'plugins_loaded', function() {
-						load_plugin_textdomain( 'multisite-portfolio', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+						load_plugin_textdomain( 'network-portfolio', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 				} );
-				//add_filter( 'manage_sites-network_sortable_columns', array($this,'portfolio_column_register_sortable') ); //nonworkable, yet
+				// add_filter( 'manage_sites-network_sortable_columns', array( $this, 'portfolio_column_register_sortable' ) ); //nonworkable, yet
 			}
 			if ( is_admin() ) {
 				add_action( 'wp_ajax_change_portfolio_status', array( $this, 'ajax_change_portfolio_status' ) );
@@ -40,7 +40,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'network_portfolio_scripts' ) );
 		}
 
-		public function portfolio( $attributes  ) {
+		public function portfolio( $attributes ) {
 			global $wp_version;
 
 			$attributes  = shortcode_atts( array(
@@ -61,7 +61,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$attributes['orderby']  = filter_var( $attributes['orderby'],  FILTER_SANITIZE_STRING, array( 'default' => 'modified=DESC&title=DESC' ) );
 
 			$current_site = get_current_blog_id();
-			// if ( false !== ( $network_blogs = get_site_transient( 'network_blogs' ) ) ) {
+			if ( false === ( $network_blogs = get_site_transient( 'network_blogs' ) ) ) {
 				if ( version_compare( $wp_version, '4.6' ) >= 0 ) {
 					$network_blogs = get_sites( array(
 							'site__not_in' => array(), // Array of site IDs to exclude.
@@ -80,7 +80,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					} );
 				}
 				set_site_transient( 'network_blogs', $network_blogs, $attributes['expires'] );
-			// }
+			}
 
 			$thumb_settings = array(
 				'width'         => \NetworkPortfolio\Helper::get_option( 'networkportfolio[width]', '430' ),
@@ -124,7 +124,11 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 							$query_args = array(
 								'post_status'      => 'publish',
 								'post_type'        => explode( ',', $attributes['posttype'] ),
-								'orderby'          => wp_parse_args( $attributes['orderby'], array( 'modified' => 'DESC', 'title' => 'DESC' ) ),
+								'orderby'          => wp_parse_args( $attributes['orderby'], array(
+														'modified' => 'DESC',
+														'title' => 'DESC',
+													)
+								),
 								'posts_per_page'   => $attributes['posts'],
 								'suppress_filters' => false,
 							);
@@ -135,7 +139,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 							}
 							$site_post_query->query( $query_args );
 							set_site_transient( "site_post_query_{$network_blog[ 'blog_id' ]}", $site_post_query, $attributes['expires'] );
-						}
+						} // End if().
 
 						if ( $site_post_query->have_posts() ) {
 							$site_posts .= '<ul class="link-list">';
@@ -156,40 +160,23 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 							$site_posts .= '</ul>';
 						}
 						wp_reset_query();
-					}
+					} // End if().
 					// $description  = get_bloginfo( 'description' );
 					$network_blog_details = get_blog_details( $network_blog['blog_id'] );
 					$header_image_url = '';
 					$site_url = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) :  set_url_scheme( '//' . $network_blog_details->domain  . $network_blog_details->path );
 
 					// switch_to_blog( $current_site );
-					$thumb_settings[ 'url' ] = $site_url;
-					$thumb_settings[ 'title' ] = $network_blog_details->blogname;
-					$thumb_settings[ 'description' ] = get_bloginfo( 'description' );
-					$thumb_settings[ 'posts' ] = $site_posts;
+					$thumb_settings['url'] = $site_url;
+					$thumb_settings['title'] = $network_blog_details->blogname;
+					$thumb_settings['description'] = get_bloginfo( 'description' );
+					$thumb_settings['posts'] = $site_posts;
 
-					$thumb_settings[ 'url' ] = 'https://soderlind.no';
 					$header_image_url = $this->webshot( $thumb_settings );
 
 					$output_string .= $header_image_url;
-
-					// $output_string .= sprintf( '<div class="content-section content-col-1 content-current">
-					// 			<!--small>%2$s</small-->
-					// 			<a href="%4$s"><img title="%1$s" alt="%1$s" src="%5$s" style="border:3px solid #f4f1f0; background-color:%6$s;height:177px;"></a>
-					// 			<h2 class="title"><a href="%4$s">%1$s</a></h2>
-					// 			%3$s
-					// 		</div>',
-					// 	$network_blog_details->blogname,
-					// 	$description,
-					// 	$site_posts,
-					// 	( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) )
-					// 		? domain_mapping_siteurl( false )
-					// 		: '//' . $network_blog_details->domain  . $network_blog_details->path ,
-					// 	esc_attr( $header_image_url ),
-					// 	( ! $header_image_url ) ? '#002e5e' : 'none'
-					// );
-				}
-			}
+				} // End foreach().
+			} // End if().
 			$output_string .= '</div>';
 
 			switch_to_blog( $current_site );
@@ -197,9 +184,6 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$GLOBALS['switched']           = false;
 
 			return $output_string;
-
-
-			// return $this->webshot( $attributes['url'], $attributes );
 		}
 
 
@@ -208,11 +192,6 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$cloud_name = \NetworkPortfolio\Helper::get_option( 'networkportfolio[cloud_name]' );
 			$api_key    = \NetworkPortfolio\Helper::get_option( 'networkportfolio[api_key]' );
 			$api_secret = \NetworkPortfolio\Helper::get_option( 'networkportfolio[api_secret]' );
-
-			// \NetworkPortfolio\Helper::write_log( array($cloud_name, $api_key, $api_secret) );
-			//
-
-
 
 			if ( false !== \NetworkPortfolio\Helper::is_valid_cloudinary_account( $cloud_name, $api_key, $api_secret ) ) {
 				$border = array();
@@ -249,33 +228,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					$img_width = $img_width + ( $arguments['border_width'] * 2 );
 					$img_height = $img_height + ( $arguments['border_width'] * 2 );
 				}
-				// $url = $arguments['url'];
-				// TODO: Responsive image
-				// ob_start();
-				// echo cl_image_tag( $url, $settings );
-				// return ob_get_clean();
 
-				// try {
-				// 	\Cloudinary::config(array(
-				// 		'cloud_name' => $cloud_name,
-				// 		'api_key'    => $api_key,
-				// 		'api_secret' => $api_secret,
-				// 	));
-				// 	$thumb = sprintf( '<div class="network-portfolio-item" style="width:%2$spx; height:%3$spx;"><img src="%1$s" width="%2$s" height="%3$s" /></div>', cloudinary_url( $arguments['url'], $settings ), $img_width, $img_height );
-				// } catch ( \Exception $e) {
-				// 	$thumb = '<pre>' . 'ERROR:' .  sprintf ("%s (%s): %s",$e->getFile(), $e->getLine(), $e->getMessage() ) . '</pre>';
-				// }
-				//
-				// return $thumb;
-				/*
-				<div class="content-section content-news content-col-1">
-					<img src="http://placehold.it/316x177" alt="Alternativ bildetekst">
-					<h2 class="title">
-						<a href="/nb/finn_dokument/id2000006/">Tittel</a>
-					</h2>
-					<p>Her er ingress</p>
-				</div>
-				 */
 				return  sprintf( '<div class="network-portfolio-item" style="width:%3$spx; Xheight:%4$spx;">
 									<a href="%1$s">
 									<img src="%2$s" width="%3$s" height="%4$s" />
@@ -286,18 +239,17 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 									</a>
 									%7$s
 								  </div>',
-								  $arguments['url'],
-								  cloudinary_url( $arguments['url'], $settings ),
-								  $img_width,
-								  $img_height,
-								  $arguments['title'],
-								  $arguments['description'],
-								  $arguments['posts']
-
+					$arguments['url'],
+					cloudinary_url( $arguments['url'], $settings ),
+					$img_width,
+					$img_height,
+					$arguments['title'],
+					$arguments['description'],
+					$arguments['posts']
 				);
 			} else {
 				return sprintf( '<!--invalid_cloudinary_account %s-->', print_r( $arguments, true ) );
-			}
+			} // End if().
 		}
 
 
@@ -316,7 +268,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			return $where;
 		}
 
-		/*
+		/**
 		 *   Portfolio management (show, don't show)
 		 */
 
@@ -333,7 +285,6 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 	 	function new_site_deletes_transient( $blog_id, $user_id, $domain, $path, $site_id, $meta ) {
 	 		delete_site_transient( 'network_blogs' );
 	 	}
-
 
 	 	/**
 	 	 * Change the portfolio status (vissible / hidden), also reset the single site post query transient
@@ -407,7 +358,6 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 	 		}
 	 	}
 
-
 	 	/**
 	 	 * Register the column as sortable
 	 	 *
@@ -418,9 +368,6 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 	 		$columns['portfolio'] = 'portfolio';
 	 		return $columns;
 	 	}
-
-
-
 
 
 		function network_admin_scripts() {
@@ -465,7 +412,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 				}
 				if ( isset( $change_to ) ) {
 					$this->change_portfolio_status( $site_id, $change_to );
-					if (  'hidden' == $change_to ) {
+					if ( 'hidden' == $change_to ) {
 						$response['text']      = __( 'Hidden', 'multisite-portfolio' );
 						$response['change_to'] = 'visible';
 					} else {
@@ -484,6 +431,5 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			echo json_encode( $response );
 			die();
 		}
-
 	}
-}
+} // End if().

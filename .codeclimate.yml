@@ -18,7 +18,7 @@ ratings:
     - "**.js"
     - "**.php"
 exclude_paths:
-  - node_modules/**/*
+  - node_modules/**
   - languages/**
   - lib/cloudinary/**
   - lib/plugin-customizer/assets/twentysixteen/**

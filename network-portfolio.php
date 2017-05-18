@@ -55,27 +55,21 @@ if ( defined( 'WPINC' ) ) {
 		} );
 
 		/**
-		* Handle saving of settings with "user_meta" storage type.
+		* Handle saving of settings with custom storage type.
 		*
 		* @param string $value Value being saved
-		* @param WP_Customize_Setting|onj $WP_Customize_Setting The WP_Customize_Setting instance when saving is happening.
+		* @param WP_Customize_Setting $WP_Customize_Setting The WP_Customize_Setting instance when saving is happening.
 		*/
 		add_action( 'customize_update_site_option', function( $value, $WP_Customize_Setting ) {
-
-			\NetworkPortfolio\Helper::update_option( $WP_Customize_Setting->id, $value  );
-
+			\NetworkPortfolio\Helper::update_option( $WP_Customize_Setting->id, $value );
 		}, 10, 2 );
 
 		add_action( 'customize_value_site_option', function( $WP_Customize_Setting ) {
-
-			return \NetworkPortfolio\Helper::get_option( $WP_Customize_Setting->id  );
-
+			return \NetworkPortfolio\Helper::get_option( $WP_Customize_Setting->id );
 		}, 10, 2 );
 
 		add_action( 'customize_preview_site_option', function( $WP_Customize_Setting ) {
-
-			return \NetworkPortfolio\Helper::get_option( $WP_Customize_Setting->id  );
-
+			return \NetworkPortfolio\Helper::get_option( $WP_Customize_Setting->id );
 		}, 10, 2 );
 
 	} );
