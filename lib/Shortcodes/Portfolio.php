@@ -169,7 +169,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					// @codingStandardsIgnoreEnd
 
 					$header_image_url = '';
-					$site_url = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) :  set_url_scheme( '//' . $network_blog_details->domain  . $network_blog_details->path );
+					$site_url = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) :  $network_blog_details->home;
 
 					// @codingStandardsIgnoreStart
 					printf( '<!-- site_url: %s -->', print_r( $site_url, true ) );
