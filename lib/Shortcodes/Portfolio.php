@@ -164,18 +164,10 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					// $description  = get_bloginfo( 'description' );
 					$network_blog_details = get_blog_details( $network_blog['blog_id'] );
 
-					// @codingStandardsIgnoreStart
-					printf( '<!--%s -->', print_r( $network_blog_details, true ) );
-					// @codingStandardsIgnoreEnd
-
 					$header_image_url = '';
 					$site_url = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) :  $network_blog_details->home;
 
 					$site_url = $network_blog_details->home;
-
-					// @codingStandardsIgnoreStart
-					printf( '<!-- site_url: %s -->', print_r( $site_url, true ) );
-					// @codingStandardsIgnoreEnd
 
 					// switch_to_blog( $current_site );
 					$thumb_settings['url'] = $site_url;
