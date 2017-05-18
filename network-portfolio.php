@@ -12,7 +12,7 @@
  * Plugin URI:  https://github.com/soderlind/network-portfolio
  * Description:
  * Network: false
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: network-portfolio
@@ -22,7 +22,7 @@
 if ( version_compare( PHP_VERSION, '5.6.0' ) < 0 ) {
 	return add_action( 'admin_notices', 'networkportfolio_admin_notice_php_version' );
 }
-define( 'NETWORKPORTFOLIO_VERSION', '1.0.3' );
+define( 'NETWORKPORTFOLIO_VERSION', '1.0.4' );
 define( 'NETWORKPORTFOLIO_PATH',   plugin_dir_path( __FILE__ ) );
 define( 'NETWORKPORTFOLIO_URL',   plugin_dir_url( __FILE__ ) );
 
