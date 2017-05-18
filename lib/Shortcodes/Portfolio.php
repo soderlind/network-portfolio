@@ -171,6 +171,8 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					$header_image_url = '';
 					$site_url = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) :  $network_blog_details->home;
 
+					$site_url = $network_blog_details->home;
+
 					// @codingStandardsIgnoreStart
 					printf( '<!-- site_url: %s -->', print_r( $site_url, true ) );
 					// @codingStandardsIgnoreEnd
