@@ -34,19 +34,42 @@ if ( ! class_exists( 'NetworkPortfolio\Helper' ) ) {
 
 		public static function is_valid_cloudinary_account( $cloud_name, $api_key, $api_secret ) {
 
-			// TODO: Add transient
+			$account_data = get_network_option( get_current_network_id(), 'networkportfolio_account_data', array() );
 
-			try {
-				\Cloudinary::config(array(
+			$validate_account = true;
+
+			if ( count( $account_data ) ) {
+				$new_account_data = array(
 					'cloud_name' => $cloud_name,
 					'api_key'    => $api_key,
 					'api_secret' => $api_secret,
-				));
+				);
+				if ( is_array( $account_data ) && is_array( $new_account_data )
+					&& count( $account_data ) == count( $new_account_data )
+					&& ! array_diff( $account_data, $new_account_data ) ) {
+						$validate_account = false;
+				} else {
+					$account_data = $new_account_data;
+				}
+			} else {
+				$account_data = array(
+					'cloud_name' => $cloud_name,
+					'api_key'    => $api_key,
+					'api_secret' => $api_secret,
+				);
+			}
+
+			try {
+				\Cloudinary::config( $account_data );
 				$api = new \Cloudinary\Api();
-				$result = $api->ping();
-			} catch ( \Exception $e) {
+				if ( $validate_account ) {
+					$result = $api->ping();
+				}
+				update_network_option( get_current_network_id(), 'networkportfolio_account_data', $account_data );
+			} catch ( \Exception $e ) {
+				delete_network_option( get_current_network_id(), 'networkportfolio_account_data' );
 				// self::write_log( $e->getMessage() );
-				self::write_log( sprintf ("%s (%s): %s",$e->getFile(), $e->getLine(), $e->getMessage() ) );
+				self::write_log( sprintf( "%s (%s): %s", $e->getFile(), $e->getLine(), $e->getMessage() ) );
 				self::write_log( $e->getTraceAsString() );
 				return false;
 			}
