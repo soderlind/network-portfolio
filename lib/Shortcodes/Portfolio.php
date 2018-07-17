@@ -49,55 +49,62 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 
 			$attributes = shortcode_atts(
 				array(
-					'posts'    => 0,
-					'expires'  => 600, //10 minutes
-					'navmenu'  => '',
-					'posttype' => 'post,page',
-					'orderby'  => 'modified=DESC&title=DESC',
-					'theme'    => '',
-					'num'      => 0,
+					'sites'   => 0,
+					'width'   => 0,
+					'height'  => 0,
+					'expires' => 600, //10 minutes
+					'orderby' => 'modified=DESC&title=DESC',
+					'theme'   => '',
+					'num'     => 0,
 				), $attributes, 'networkportfolio'
 			);
 
 			//validate
 			// $attributes['cols']     = filter_var( $attributes['cols'],     FILTER_VALIDATE_INT, array( 'default' => 3 ) );
-			$attributes['posts']    = filter_var( $attributes['posts'], FILTER_VALIDATE_INT, array( 'default' => 3 ) );
-			$attributes['expires']  = filter_var( $attributes['expires'], FILTER_VALIDATE_INT, array( 'default' => 600 ) );
-			$attributes['navmenu']  = filter_var( $attributes['navmenu'], FILTER_SANITIZE_STRING, array( 'default' => '' ) );
-			$attributes['posttype'] = filter_var( $attributes['posttype'], FILTER_SANITIZE_STRING, array( 'default' => 'post,page' ) );
-			$attributes['orderby']  = filter_var( $attributes['orderby'], FILTER_SANITIZE_STRING, array( 'default' => 'modified=DESC&title=DESC' ) );
+			$attributes['expires'] = filter_var( $attributes['expires'], FILTER_VALIDATE_INT, array( 'default' => 600 ) );
+			$attributes['orderby'] = filter_var( $attributes['orderby'], FILTER_SANITIZE_STRING, array( 'default' => 'modified=DESC&title=DESC' ) );
 
-			$current_site = get_current_blog_id();
-			if ( false === ( $network_blogs = get_site_transient( 'network_blogs' ) ) ) {
-				if ( version_compare( $wp_version, '4.6' ) >= 0 ) {
+			$sites         = array();
+			$network_blogs = array();
+			if ( 0 != $attributes['sites'] ) {
+				$sites = explode( ',', $attributes['sites'] );
+				// \NetworkPortfolio\Helper::write_log( $sites );
+				foreach ( $sites as $site ) {
+					$network_blogs = array_merge(
+						$network_blogs, get_sites(
+							array(
+								'ID'     => $site,
+								'public' => true,
+							)
+						)
+					);
+				}
+				// sort on last_updated, newest first
+				usort(
+					$network_blogs, function( $a, $b ) {
+						return $a->last_updated < $b->last_updated;
+					}
+				);
+			} else {
+				if ( false === ( $network_blogs = get_site_transient( 'network_blogs' ) ) ) {
 					$network_blogs = get_sites(
 						array(
-							'site__not_in' => array(), // Array of site IDs to exclude.
-							'public'       => true,
-							'orderby'      => 'last_updated',
-							'order'        => 'DESC',
+							'public'            => true,
+							'orderby'           => 'last_updated',
+							'order'             => 'DESC',
+							'update_site_cache' => true,
 						)
 					);
-				} else {
-					$network_blogs = wp_get_sites(
-						array(
-							'offset' => '0', // don't show main site (site nr 0)
-							'public' => true,
-						)
-					);
-					// sort on last_updated, newest first
-					usort(
-						$network_blogs, function( $a, $b ) {
-							return $a['last_updated'] < $b['last_updated'];
-						}
-					);
+					set_site_transient( 'network_blogs', $network_blogs, $attributes['expires'] );
 				}
 				set_site_transient( 'network_blogs', $network_blogs, $attributes['expires'] );
 			}
 
+			$current_site = get_current_blog_id();
+
 			$thumb_settings = array(
-				'width'         => \NetworkPortfolio\Helper::get_option( 'networkportfolio[width]', '430' ),
-				'height'        => \NetworkPortfolio\Helper::get_option( 'networkportfolio[height]', '225' ),
+				'width'         => ( 0 != $attributes['width'] ) ? $attributes['width'] : \NetworkPortfolio\Helper::get_option( 'networkportfolio[width]', '430' ),
+				'height'        => ( 0 != $attributes['height'] ) ? $attributes['height'] : \NetworkPortfolio\Helper::get_option( 'networkportfolio[height]', '225' ),
 				'border_width'  => \NetworkPortfolio\Helper::get_option( 'networkportfolio[border_width]', '0' ),
 				'border_radius' => \NetworkPortfolio\Helper::get_option( 'networkportfolio[border_radius]', '0' ),
 				'border_color'  => \NetworkPortfolio\Helper::get_option( 'networkportfolio[border_color]', '#000000' ),
@@ -128,7 +135,6 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 
 					$site_url = $network_blog_details->home;
 
-					// switch_to_blog( $current_site );
 					$thumb_settings['url']         = $site_url;
 					$thumb_settings['title']       = $network_blog_details->blogname;
 					$thumb_settings['description'] = get_bloginfo( 'description' );
