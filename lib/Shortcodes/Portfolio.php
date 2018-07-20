@@ -68,11 +68,9 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$sites                  = array();
 			$network_blogs          = array();
 			$shortcode_transient_id = 'network_portfolio_' . md5( serialize( $attributes ) );// create unique transient id pr shortcode used
-			\NetworkPortfolio\Helper::write_log( $shortcode_transient_id );
 			if ( false === ( $network_blogs = get_site_transient( $shortcode_transient_id ) ) ) {
 				if ( '' != $attributes['sites'] ) {
 					$sites = explode( ',', $attributes['sites'] );
-					\NetworkPortfolio\Helper::write_log( $sites );
 					foreach ( $sites as $site ) {
 						$network_blogs = array_merge(
 							$network_blogs, get_sites(
