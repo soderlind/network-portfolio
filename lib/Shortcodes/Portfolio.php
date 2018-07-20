@@ -49,13 +49,14 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 
 			$attributes = shortcode_atts(
 				array(
-					'sites'   => 0,
+					'sites'   => '',
 					'width'   => 0,
 					'height'  => 0,
 					'expires' => 600, //10 minutes
 					'orderby' => 'modified=DESC&title=DESC',
 					'theme'   => '',
 					'num'     => 0,
+					'list'    => false,
 				), $attributes, 'networkportfolio'
 			);
 
@@ -64,29 +65,31 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$attributes['expires'] = filter_var( $attributes['expires'], FILTER_VALIDATE_INT, array( 'default' => 600 ) );
 			$attributes['orderby'] = filter_var( $attributes['orderby'], FILTER_SANITIZE_STRING, array( 'default' => 'modified=DESC&title=DESC' ) );
 
-			$sites         = array();
-			$network_blogs = array();
-			if ( 0 != $attributes['sites'] ) {
-				$sites = explode( ',', $attributes['sites'] );
-				// \NetworkPortfolio\Helper::write_log( $sites );
-				foreach ( $sites as $site ) {
-					$network_blogs = array_merge(
-						$network_blogs, get_sites(
-							array(
-								'ID'     => $site,
-								'public' => true,
+			$sites                  = array();
+			$network_blogs          = array();
+			$shortcode_transient_id = 'network_portfolio_' . md5( serialize( $attributes ) );// create unique transient id pr shortcode used
+			\NetworkPortfolio\Helper::write_log( $shortcode_transient_id );
+			if ( false === ( $network_blogs = get_site_transient( $shortcode_transient_id ) ) ) {
+				if ( '' != $attributes['sites'] ) {
+					$sites = explode( ',', $attributes['sites'] );
+					\NetworkPortfolio\Helper::write_log( $sites );
+					foreach ( $sites as $site ) {
+						$network_blogs = array_merge(
+							$network_blogs, get_sites(
+								array(
+									'ID'     => $site,
+									'public' => true,
+								)
 							)
-						)
-					);
-				}
-				// sort on last_updated, newest first
-				usort(
-					$network_blogs, function( $a, $b ) {
-						return $a->last_updated < $b->last_updated;
+						);
 					}
-				);
-			} else {
-				if ( false === ( $network_blogs = get_site_transient( 'network_blogs' ) ) ) {
+					// sort on last_updated, newest first
+					usort(
+						$network_blogs, function( $a, $b ) {
+							return $a->last_updated < $b->last_updated;
+						}
+					);
+				} else {
 					$network_blogs = get_sites(
 						array(
 							'public'            => true,
@@ -95,9 +98,8 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 							'update_site_cache' => true,
 						)
 					);
-					set_site_transient( 'network_blogs', $network_blogs, $attributes['expires'] );
 				}
-				set_site_transient( 'network_blogs', $network_blogs, $attributes['expires'] );
+				set_site_transient( $shortcode_transient_id, $network_blogs, $attributes['expires'] );
 			}
 
 			$current_site = get_current_blog_id();
@@ -111,7 +113,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			);
 
 			$show_in_portfolio = get_site_option( 'network_portfolio' );
-			$output_string     = '<div class="network-portfolio">';
+			$output_string     = ( false === $attributes['list'] ) ? '<div class="network-portfolio">' : '<ul class="network-portfolio-list">';
 			if ( 0 < count( (array) $network_blogs ) ) {
 				$num_thumbs = 0;
 				foreach ( $network_blogs as $network_blog_object ) {
@@ -123,30 +125,44 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					$network_blog_details = get_blog_details( $network_blog['blog_id'] );
 
 					switch_to_blog( $network_blog_details->blog_id );
-					$network_blog_details->theme = get_stylesheet();
+					$network_blog_details->theme    = get_stylesheet();
+					$site_url                       = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) : $network_blog_details->home;
+					$network_blog_details->site_url = $site_url;
 					restore_current_blog();
 
 					if ( '' != $attributes['theme'] && $attributes['theme'] != $network_blog_details->theme ) {
 						continue;
 					}
 
-					$header_image_url = '';
-					$site_url         = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) : $network_blog_details->home;
-
-					$site_url = $network_blog_details->home;
-
-					$thumb_settings['url']         = $site_url;
+					$thumb_settings['url']         = $network_blog_details->site_url;
 					$thumb_settings['title']       = $network_blog_details->blogname;
 					$thumb_settings['description'] = get_bloginfo( 'description' );
 
 					if ( 0 === $attributes['num'] || $attributes['num'] > $num_thumbs ) {
-						$header_image_url = $this->webshot( $thumb_settings );
-						$output_string   .= $header_image_url;
+						if ( false === $attributes['list'] ) {
+							$header_image_url = $this->webshot( $thumb_settings );
+							$output_string   .= $header_image_url;
+						} else {
+							$list_sites[] = $network_blog_details;
+						}
 						$num_thumbs++;
 					}
 				} // End foreach().
 			} // End if().
-			$output_string .= '</div>';
+
+			if ( false !== $attributes['list'] ) {
+				// sort on blogname, ascending order
+				usort(
+					$list_sites, function( $a, $b ) {
+						return $a->blogname > $b->blogname;
+					}
+				);
+				foreach ( $list_sites as $list_site ) {
+					$output_string .= sprintf( '<li><a href="%s">%s</a></li>', $list_site->site_url, $list_site->blogname );
+				}
+			}
+
+			$output_string .= ( false === $attributes['list'] ) ? '</div>' : '</ul>';
 
 			switch_to_blog( $current_site );
 			$GLOBALS['_wp_switched_stack'] = array();
