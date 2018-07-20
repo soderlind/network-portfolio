@@ -57,6 +57,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					'theme'   => '',
 					'num'     => 0,
 					'list'    => false,
+					'all'     => false,
 				), $attributes, 'networkportfolio'
 			);
 
@@ -114,9 +115,10 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$output_string     = ( false === $attributes['list'] ) ? '<div class="network-portfolio">' : '<ul class="network-portfolio-list">';
 			if ( 0 < count( (array) $network_blogs ) ) {
 				$num_thumbs = 0;
+				$list_sites = array();
 				foreach ( $network_blogs as $network_blog_object ) {
 					$network_blog = (array) $network_blog_object;
-					if ( ! isset( $show_in_portfolio[ $network_blog['blog_id'] ] ) || 'visible' != $show_in_portfolio[ $network_blog['blog_id'] ] ) {
+					if ( false === $attributes['all']  && ( ! isset( $show_in_portfolio[ $network_blog['blog_id'] ] ) || 'visible' != $show_in_portfolio[ $network_blog['blog_id'] ] ) ) {
 						continue;
 					}
 
@@ -152,7 +154,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 				// sort on blogname, ascending order
 				usort(
 					$list_sites, function( $a, $b ) {
-						return $a->blogname > $b->blogname;
+						return strtolower( $a->blogname ) > strtolower( $b->blogname );
 					}
 				);
 				foreach ( $list_sites as $list_site ) {
