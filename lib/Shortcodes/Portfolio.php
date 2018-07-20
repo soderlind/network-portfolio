@@ -132,10 +132,16 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					}
 
 					switch_to_blog( $network_blog_details->blog_id );
-					$network_blog_details->theme    = get_stylesheet();
-					$site_url                       = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) : $network_blog_details->home;
-					$network_blog_details->site_url = $site_url;
+					$network_blog_details->theme       = get_stylesheet();
+					$site_url                          = ( function_exists( 'domain_mapping_siteurl' ) && 'NA' != domain_mapping_siteurl( 'NA' ) ) ? domain_mapping_siteurl( false ) : $network_blog_details->home;
+					$network_blog_details->site_url    = $site_url;
+					$network_blog_details->blog_public = get_option( 'blog_public', 1 );
 					restore_current_blog();
+
+					if ( 2 == $network_blog_details->blog_public ) {
+						// Restricted Site Access plug-in is blocking public access to this site
+						continue;
+					}
 
 					if ( '' != $attributes['theme'] && $attributes['theme'] != $network_blog_details->theme ) {
 						continue;
