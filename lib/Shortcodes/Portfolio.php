@@ -164,7 +164,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 						return strtolower( $a->blogname ) > strtolower( $b->blogname );
 					}
 				);
-				foreach ( $list_sites as $list_site ) {
+				foreach ( (array) $list_sites as $list_site ) {
 					$output_string .= sprintf( '<li><a href="%s">%s</a></li>', $list_site->site_url, $list_site->blogname );
 				}
 			}
