@@ -9,7 +9,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		/**
 		 * Singleton from: from http://stackoverflow.com/a/15870364/1434155
 		 */
-		private static $instances = array();
+		private static $instances = [];
 		protected function __construct() {}
 		protected function __clone() {}
 		public function __wakeup() {
@@ -25,30 +25,31 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		}
 
 		public function init() {
-			add_shortcode( 'portfolio', array( $this, 'portfolio' ) );
+			add_shortcode( 'portfolio', [ $this, 'portfolio' ] );
 			if ( is_network_admin() ) {
-				add_action( 'admin_enqueue_scripts', array( $this, 'network_admin_scripts' ) );
-				add_filter( 'wpmu_blogs_columns', array( $this, 'add_new_columns' ) );
-				add_action( 'manage_sites_custom_column', array( $this, 'manage_columns' ), 10, 2 );
-				add_action( 'wpmu_new_blog', array( $this, 'new_site_deletes_transient' ), 10, 6 );
+				add_action( 'admin_enqueue_scripts', [ $this, 'network_admin_scripts' ] );
+				add_filter( 'wpmu_blogs_columns', [ $this, 'add_new_columns' ] );
+				add_action( 'manage_sites_custom_column', [ $this, 'manage_columns' ], 10, 2 );
+				add_action( 'wpmu_new_blog', [ $this, 'new_site_deletes_transient' ], 10, 6 );
 				add_action(
-					'plugins_loaded', function() {
+					'plugins_loaded',
+					function() {
 						load_plugin_textdomain( 'network-portfolio', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 					}
 				);
 				// add_filter( 'manage_sites-network_sortable_columns', array( $this, 'portfolio_column_register_sortable' ) ); //nonworkable, yet
 			}
 			if ( is_admin() ) {
-				add_action( 'wp_ajax_change_portfolio_status', array( $this, 'ajax_change_portfolio_status' ) );
+				add_action( 'wp_ajax_change_portfolio_status', [ $this, 'ajax_change_portfolio_status' ] );
 			}
-			add_action( 'wp_enqueue_scripts', array( $this, 'network_portfolio_scripts' ) );
+			add_action( 'wp_enqueue_scripts', [ $this, 'network_portfolio_scripts' ] );
 		}
 
 		public function portfolio( $attributes ) {
 			global $wp_version;
 
 			$attributes = shortcode_atts(
-				array(
+				[
 					'sites'   => 0,
 					'width'   => 0,
 					'height'  => 0,
@@ -58,48 +59,52 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					'num'     => 0,
 					'list'    => false,
 					'all'     => false,
-					'noshow'  => array(),
-				), $attributes, 'networkportfolio'
+					'noshow'  => [],
+				],
+				$attributes,
+				'networkportfolio'
 			);
 
 			//validate
 			// $attributes['cols']     = filter_var( $attributes['cols'],     FILTER_VALIDATE_INT, array( 'default' => 3 ) );
-			$attributes['expires'] = filter_var( $attributes['expires'], FILTER_VALIDATE_INT, array( 'default' => 600 ) );
-			$attributes['orderby'] = filter_var( $attributes['orderby'], FILTER_SANITIZE_STRING, array( 'default' => 'modified=DESC&title=DESC' ) );
-			$attributes['noshow']  = ( 0 !== count( $attributes['noshow'] ) ) ? explode( ',', $attributes['noshow'] ) : array();
+			$attributes['expires'] = filter_var( $attributes['expires'], FILTER_VALIDATE_INT, [ 'default' => 600 ] );
+			$attributes['orderby'] = filter_var( $attributes['orderby'], FILTER_SANITIZE_STRING, [ 'default' => 'modified=DESC&title=DESC' ] );
+			$attributes['noshow']  = ( is_array( $attributes['noshow'] ) && 0 !== count( $attributes['noshow'] ) ) ? explode( ',', $attributes['noshow'] ) : [];
 
 			$shortcode_transient_id = 'network_portfolio' . md5( serialize( $attributes ) );// create unique transient id pr shortcode used
 			if ( false === ( $network_blogs = get_site_transient( $shortcode_transient_id ) ) ) {
-				$sites         = array();
-				$network_blogs = array();
+				$sites         = [];
+				$network_blogs = [];
 				if ( 0 != $attributes['sites'] ) {
 					$sites = explode( ',', $attributes['sites'] );
 					foreach ( $sites as $site ) {
 						$network_blogs = array_merge(
-							$network_blogs, get_sites(
-								array(
+							$network_blogs,
+							get_sites(
+								[
 									'ID'     => $site,
 									'public' => true,
-								)
+								]
 							)
 						);
 					}
 					// sort on last_updated, newest first
 					usort(
-						$network_blogs, function( $a, $b ) {
+						$network_blogs,
+						function( $a, $b ) {
 							return $a->last_updated < $b->last_updated;
 						}
 					);
 				} else {
 					$network_blogs = get_sites(
-						array(
+						[
 							'public'            => true,
 							'orderby'           => 'last_updated',
 							'order'             => 'DESC',
 							'update_site_cache' => true,
 							'site__not_in'      => $attributes['noshow'],
 
-						)
+						]
 					);
 				}
 			}
@@ -107,19 +112,19 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 
 			$current_site = get_current_blog_id();
 
-			$thumb_settings = array(
+			$thumb_settings = [
 				'width'         => ( 0 != $attributes['width'] ) ? $attributes['width'] : \NetworkPortfolio\Helper::get_option( 'networkportfolio[width]', '430' ),
 				'height'        => ( 0 != $attributes['height'] ) ? $attributes['height'] : \NetworkPortfolio\Helper::get_option( 'networkportfolio[height]', '225' ),
 				'border_width'  => \NetworkPortfolio\Helper::get_option( 'networkportfolio[border_width]', '0' ),
 				'border_radius' => \NetworkPortfolio\Helper::get_option( 'networkportfolio[border_radius]', '0' ),
 				'border_color'  => \NetworkPortfolio\Helper::get_option( 'networkportfolio[border_color]', '#000000' ),
-			);
+			];
 
 			$show_in_portfolio = get_site_option( 'network_portfolio' );
 			$output_string     = ( false === $attributes['list'] ) ? '<div class="network-portfolio">' : '<ul class="network-portfolio-list">';
 			if ( 0 < count( (array) $network_blogs ) ) {
 				$num_thumbs = 0;
-				$list_sites = array();
+				$list_sites = [];
 				foreach ( $network_blogs as $network_blog_object ) {
 					$network_blog = (array) $network_blog_object;
 					if ( false === $attributes['all'] && ( ! isset( $show_in_portfolio[ $network_blog['blog_id'] ] ) || 'visible' != $show_in_portfolio[ $network_blog['blog_id'] ] ) ) {
@@ -166,7 +171,8 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			if ( false !== $attributes['list'] ) {
 				// sort on blogname, ascending order
 				usort(
-					$list_sites, function( $a, $b ) {
+					$list_sites,
+					function( $a, $b ) {
 						return strtolower( $a->blogname ) > strtolower( $b->blogname );
 					}
 				);
@@ -178,7 +184,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$output_string .= ( false === $attributes['list'] ) ? '</div>' : '</ul>';
 
 			switch_to_blog( $current_site );
-			$GLOBALS['_wp_switched_stack'] = array();
+			$GLOBALS['_wp_switched_stack'] = [];
 			$GLOBALS['switched']           = false;
 
 			return $output_string;
@@ -192,15 +198,15 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			$api_secret = \NetworkPortfolio\Helper::get_option( 'networkportfolio[api_secret]' );
 
 			if ( false !== \NetworkPortfolio\Helper::is_valid_cloudinary_account( $cloud_name, $api_key, $api_secret ) ) {
-				$border = array();
+				$border = [];
 				if ( 0 !== $arguments['border_width'] ) {
-					$border['border'] = array(
+					$border['border'] = [
 						'width' => $arguments['border_width'],
 						'color' => $arguments['border_color'],
-					);
+					];
 				}
 
-				$settings = array(
+				$settings = [
 					'type'         => 'url2png',
 					'crop'         => 'fill',
 					'gravity'      => 'north',
@@ -209,7 +215,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					'height'       => $arguments['height'],
 					'radius'       => $arguments['border_radius'],
 					'sign_url'     => true,
-				);
+				];
 
 				// fix cloudinary radius bug (makes a radis even though radius = 0. so don't send radius parameter when it's 0)
 				if ( 0 === $settings['radius'] ) {
@@ -295,7 +301,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 				$portfolio[ $site_id ] = $status;
 				update_site_option( 'network_portfolio', $portfolio );
 			} else {
-				add_site_option( 'network_portfolio', array( $site_id => $status ) );
+				add_site_option( 'network_portfolio', [ $site_id => $status ] );
 			}
 			delete_site_transient( "site_post_query_{$site_id}" );
 		}
@@ -380,13 +386,15 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 				$ajaxurl = site_url( '/wp-admin/admin-ajax.php', $http_scheme );
 			}
 			$url = plugins_url( '', __FILE__ );
-			wp_enqueue_script( 'change_portfolio_status', $url . '/assets/js/network-portfolio.js', array( 'jquery', 'jquery-effects-core' ), NETWORKPORTFOLIO_VERSION );
+			wp_enqueue_script( 'change_portfolio_status', $url . '/assets/js/network-portfolio.js', [ 'jquery', 'jquery-effects-core' ], NETWORKPORTFOLIO_VERSION );
 			wp_enqueue_style( 'network-portfolio', $url . '/assets/css/network-portfolio.css', NETWORKPORTFOLIO_VERSION );
 			wp_localize_script(
-				'change_portfolio_status', 'network_portfolio', array(
+				'change_portfolio_status',
+				'network_portfolio',
+				[
 					'nonce'   => wp_create_nonce( 'portfolio_security' ),
 					'ajaxurl' => $ajaxurl,
-				)
+				]
 			);
 		}
 
@@ -404,8 +412,8 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 
 			header( 'Content-type: application/json' );
 			if ( check_ajax_referer( 'portfolio_security', 'security', false ) ) {
-				$site_id   = filter_var( $_POST['site_id'], FILTER_VALIDATE_INT, array( 'default' => 0 ) );
-				$change_to = filter_var( $_POST['change_to'], FILTER_SANITIZE_STRING, array( 'default' => 'hidden' ) );
+				$site_id   = filter_var( $_POST['site_id'], FILTER_VALIDATE_INT, [ 'default' => 0 ] );
+				$change_to = filter_var( $_POST['change_to'], FILTER_SANITIZE_STRING, [ 'default' => 'hidden' ] );
 				if ( ! $site_id ) {
 					$response['data'] = 'something went wrong ...';
 					echo json_encode( $response );
