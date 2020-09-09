@@ -1,6 +1,5 @@
 # NetworkPortfolio
 
-[![Build Status](https://travis-ci.org/soderlind/network-portfolio.svg?branch=master)](https://travis-ci.org/soderlind/network-portfolio) [![Code Climate](https://codeclimate.com/github/soderlind/network-portfolio/badges/gpa.svg)](https://codeclimate.com/github/soderlind/network-portfolio)
 
 ## Description
 
