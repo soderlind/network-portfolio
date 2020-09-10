@@ -1,0 +1,8 @@
+{
+    "name": "soderlind/network-portfolio",
+    "description": "Network Portfolio",
+    "type": "wordpress-plugin",
+    "homepage": "https://github.com/soderlind/network-portfolio",
+    "license": "GPL-2.0-or-later",
+    "require": {}
+}
