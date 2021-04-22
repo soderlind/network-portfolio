@@ -22,7 +22,7 @@
 if ( version_compare( PHP_VERSION, '5.6.0' ) < 0 ) {
 	return add_action( 'admin_notices', 'networkportfolio_admin_notice_php_version' );
 }
-define( 'NETWORKPORTFOLIO_VERSION', '1.0.18' );
+define( 'NETWORKPORTFOLIO_VERSION', '1.0.19' );
 define( 'NETWORKPORTFOLIO_PATH', plugin_dir_path( __FILE__ ) );
 define( 'NETWORKPORTFOLIO_URL', plugin_dir_url( __FILE__ ) );
 
