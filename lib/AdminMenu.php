@@ -14,7 +14,7 @@ if ( ! class_exists( 'NetworkPortfolio\AdminMenu' ) ) {
 		* @author soderlind
 		* @version 1.0.0
 		*/
-		public static function register_sub_menu() {
+		public function register_sub_menu() {
 			add_options_page( __( 'Network Portfolio', 'networkportfolio' ), __( 'Network Portfolio', 'networkportfolio' ), 'manage_options', 'networkportfolio-template', '__return_null' );
 			// add_submenu_page( 'settings.php', __( 'NetworkPortfolio', 'networkportfolio' ), __( 'NetworkPortfolio', 'networkportfolio' ), 'manage_options', 'networkportfolio-template', '__return_null' );
 			$this->add_sub_menu_customizer_url();
