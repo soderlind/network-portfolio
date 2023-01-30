@@ -1,5 +1,6 @@
 <?php
 namespace PluginCustomizer;
+
 if ( ! interface_exists( 'PluginCustomizer\Plugin_Customizer_Interface' ) ) {
 	interface Plugin_Customizer_Interface {
 		public function plugin_customizer_add_templates();
