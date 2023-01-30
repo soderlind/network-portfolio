@@ -2,6 +2,9 @@
 
 namespace NetworkPortfolio\Shortcodes;
 
+use Cloudinary\Asset\Media;
+use Cloudinary\Configuration\Configuration;
+use Cloudinary\Api\Admin\AdminApi;
 
 if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 	class Portfolio {
@@ -13,9 +16,16 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		protected function __construct() {}
 		protected function __clone() {}
 		public function __wakeup() {
-			throw new Exception( 'Cannot unserialize singleton' );
+			throw new \Exception( 'Cannot unserialize singleton' );
 		}
 
+		/**
+		 * Get the items in the collection that are not present in the given items, using the callback.
+		 *
+		 * @param  mixed    $items
+		 * @param  callable $callback
+		 * @return static
+		 */
 		public static function instance() {
 			$class = get_called_class(); // late-static-bound class name
 			if ( ! isset( self::$instances[ $class ] ) ) {
@@ -24,6 +34,11 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			return self::$instances[ $class ];
 		}
 
+		/**
+		 * Add the network portfolio shortcode.
+		 *
+		 * @return void
+		 */
 		public function init() {
 			add_shortcode( 'portfolio', [ $this, 'portfolio' ] );
 			if ( is_network_admin() ) {
@@ -45,7 +60,14 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 			add_action( 'wp_enqueue_scripts', [ $this, 'network_portfolio_scripts' ] );
 		}
 
-		public function portfolio( $attributes ) {
+
+		/**
+		 * Portfolio shortcode.
+		 *
+		 * @param mixed $attributes Shortcode attributes.
+		 * @return string
+		 */
+		public function portfolio( $attributes ) : string {
 			global $wp_version;
 
 			$attributes = shortcode_atts(
@@ -53,7 +75,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 					'sites'   => 0,
 					'width'   => 0,
 					'height'  => 0,
-					'expires' => 600, //10 minutes
+					'expires' => 600, // 10 minutes
 					'orderby' => 'modified=DESC&title=DESC',
 					'theme'   => '',
 					'num'     => 0,
@@ -65,7 +87,6 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 				'networkportfolio'
 			);
 
-			//validate
 			// $attributes['cols']     = filter_var( $attributes['cols'],     FILTER_VALIDATE_INT, array( 'default' => 3 ) );
 			$attributes['expires'] = filter_var( $attributes['expires'], FILTER_VALIDATE_INT, [ 'default' => 600 ] );
 			$attributes['orderby'] = filter_var( $attributes['orderby'], FILTER_SANITIZE_STRING, [ 'default' => 'modified=DESC&title=DESC' ] );
@@ -191,76 +212,86 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		}
 
 
-		public function webshot( $arguments ) {
+		/**
+		 * Create webshot using Cloudinary URL2PNG.
+		 *
+		 * @param array $arguments Webshot properties.
+		 * @return string
+		 */
+		public function webshot( array $arguments ) :string {
 
 			$cloud_name = \NetworkPortfolio\Helper::get_option( 'networkportfolio[cloud_name]' );
 			$api_key    = \NetworkPortfolio\Helper::get_option( 'networkportfolio[api_key]' );
 			$api_secret = \NetworkPortfolio\Helper::get_option( 'networkportfolio[api_secret]' );
+			// $api_secret = 'abc';
 
-			if ( false !== \NetworkPortfolio\Helper::is_valid_cloudinary_account( $cloud_name, $api_key, $api_secret ) ) {
-				$border = [];
-				if ( 0 !== $arguments['border_width'] ) {
-					$border['border'] = [
-						'width' => $arguments['border_width'],
-						'color' => $arguments['border_color'],
-					];
-				}
-
-				$settings = [
-					'type'         => 'url2png',
-					'crop'         => 'fill',
-					'gravity'      => 'north',
-					'fetch_format' => 'auto',
-					'width'        => $arguments['width'],
-					'height'       => $arguments['height'],
-					'radius'       => $arguments['border_radius'],
-					'sign_url'     => true,
-				];
-
-				// fix cloudinary radius bug (makes a radis even though radius = 0. so don't send radius parameter when it's 0)
-				if ( 0 === $settings['radius'] ) {
-					unset( $settings['radius'] );
-				}
-
-				if ( count( $border ) ) {
-					$settings = array_merge( $settings, $border );
-				}
-
-				$img_width  = $arguments['width'];
-				$img_height = $arguments['height'];
-				if ( 0 !== $arguments['border_width'] ) {
-					$img_width  = $img_width + ( $arguments['border_width'] * 2 );
-					$img_height = $img_height + ( $arguments['border_width'] * 2 );
-				}
-
-				return  sprintf(
-					'<div class="network-portfolio-item" style="width:%3$spx; Xheight:%4$spx;">
-									<a href="%1$s">
-									<img src="%2$s" width="%3$s" height="%4$s" />
-									<h2 class="network-portfolio-title">
-										%5$s
-									</h2>
-									<p class="network-portfolio-description">%6$s</p>
-									</a>
-								  </div>',
-					$arguments['url'],
-					cloudinary_url( $arguments['url'], $settings ),
-					$img_width,
-					$img_height,
-					$arguments['title'],
-					$arguments['description']
-				);
-			} else {
+			Configuration::instance( "cloudinary://$api_key:$api_secret@$cloud_name?secure=true" );
+			try {
+				( new AdminApi() )->ping();
+			} catch ( \Exception $e ) {
 				return sprintf( '<!--invalid_cloudinary_account %s-->', print_r( $arguments, true ) );
-			} // End if().
-		}
+			}
 
+			$border = [];
+			if ( 0 !== $arguments['border_width'] ) {
+				$border['border'] = [
+					'width' => $arguments['border_width'],
+					'color' => $arguments['border_color'],
+				];
+			}
+
+			$settings = [
+				'type'         => 'url2png',
+				'crop'         => 'fill',
+				'gravity'      => 'north',
+				'fetch_format' => 'auto',
+				'width'        => $arguments['width'],
+				'height'       => $arguments['height'],
+				'radius'       => $arguments['border_radius'],
+				'sign_url'     => true,
+			];
+
+			// fix cloudinary radius bug (makes a radis even though radius = 0. so don't send radius parameter when it's 0)
+			if ( 0 === $settings['radius'] ) {
+				unset( $settings['radius'] );
+			}
+
+			if ( count( $border ) ) {
+				$settings = array_merge( $settings, $border );
+			}
+
+			$img_width  = $arguments['width'];
+			$img_height = $arguments['height'];
+			if ( 0 !== $arguments['border_width'] ) {
+				$img_width  = $img_width + ( $arguments['border_width'] * 2 );
+				$img_height = $img_height + ( $arguments['border_width'] * 2 );
+			}
+
+			return sprintf(
+				'<div class="network-portfolio-item" style="width:%3$spx; Xheight:%4$spx;">
+								<a href="%1$s">
+								<img src="%2$s" width="%3$s" height="%4$s" />
+								<h2 class="network-portfolio-title">
+									%5$s
+								</h2>
+								<p class="network-portfolio-description">%6$s</p>
+								</a>
+								</div>',
+				$arguments['url'],
+				Media::fromParams( $arguments['url'], $settings ),
+				$img_width,
+				$img_height,
+				$arguments['title'],
+				$arguments['description']
+			);
+		}
 
 		/**
 		 * Helper query "where" method, find posts only listed in menues (assuming only posts in menues are interesting)
+		 *
 		 * @author soderlind
 		 * @version [version]
-		 * @param   [type]    $where [description]
+		 * @param   [type] $where [description]
 		 * @return  [type]           [description]
 		 */
 		function where_pages_in_menu( $where ) {
@@ -278,12 +309,12 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		/**
 		 * Adding a new site deletes transient
 		 *
-		 * @param int     $blog_id Blog ID.
-		 * @param int     $user_id User ID.
-		 * @param string  $domain  Site domain.
-		 * @param string  $path    Site path.
-		 * @param int     $site_id Site ID. Only relevant on multi-network installs.
-		 * @param array   $meta    Meta data. Used to set initial site options.
+		 * @param int    $blog_id Blog ID.
+		 * @param int    $user_id User ID.
+		 * @param string $domain  Site domain.
+		 * @param string $path    Site path.
+		 * @param int    $site_id Site ID. Only relevant on multi-network installs.
+		 * @param array  $meta    Meta data. Used to set initial site options.
 		 */
 		function new_site_deletes_transient( $blog_id, $user_id, $domain, $path, $site_id, $meta ) {
 			delete_site_transient( 'network_blogs' );
@@ -292,8 +323,8 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		/**
 		 * Change the portfolio status (vissible / hidden), also reset the single site post query transient
 		 *
-		 * @param int     $site_id
-		 * @param string  $status  'vissible' or 'hidden'
+		 * @param int    $site_id
+		 * @param string $status  'vissible' or 'hidden'
 		 * @return [type]          [description]
 		 */
 		public function change_portfolio_status( $site_id, $status ) {
@@ -309,7 +340,7 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		/**
 		 * Add new column function
 		 *
-		 * @param [type]  $columns [description]
+		 * @param [type] $columns [description]
 		 */
 		public function add_new_columns( $columns ) {
 			$columns['portfolio'] = __( 'Portfolio', 'dss-web' );
@@ -319,8 +350,8 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		/**
 		 * Render columns function
 		 *
-		 * @param [type]  $column_name [description]
-		 * @param [type]  $site_id     [description]
+		 * @param [type] $column_name [description]
+		 * @param [type] $site_id     [description]
 		 * @return [type]              [description]
 		 */
 		public function manage_columns( $column_name, $site_id ) {
@@ -367,14 +398,13 @@ if ( ! class_exists( 'NetworkPortfolio\Shortcodes\Portfolio' ) ) {
 		/**
 		 * Register the column as sortable
 		 *
-		 * @param array   $columns [description]
+		 * @param array $columns [description]
 		 * @return array          [description]
 		 */
 		function portfolio_column_register_sortable( $columns ) {
 			$columns['portfolio'] = 'portfolio';
 			return $columns;
 		}
-
 
 		function network_admin_scripts() {
 

@@ -9,19 +9,19 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 
 		public $template_root;
 
-		private  $customize_register_priority = 9; // Priority must be between 2 and 9
-		private  $slug;
-		private  $org_theme;
-		private  $plugin_name;
-		private  $plugin_url;
-		private  $plugin_root;
-		private  $theme_name = 'twentysixteen';
+		private $customize_register_priority = 9; // Priority must be between 2 and 9
+		private $slug;
+		private $org_theme;
+		private $plugin_name;
+		private $plugin_url;
+		private $plugin_root;
+		private $theme_name = 'twentysixteen';
 
 
 		/**
 		 * Singleton from: from http://stackoverflow.com/a/15870364/1434155
 		 */
-		private static $instances = array();
+		private static $instances = [];
 		protected function __construct() {}
 		protected function __clone() {}
 		public function __wakeup() {
@@ -37,32 +37,39 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 		}
 
 
-		function init( $config = array() ) {
+		function init( $config = [] ) {
 
 			if ( ! count( $config ) ) {
 				wp_die( /*$message = '', $title = '', $args = array()*/ );
 			}
 
-			$config = wp_parse_args( $config, array(
-				'name' => 'Plugin Customizer',
-				'url'  => plugins_url( '', dirname( __FILE__ ) ),
-				'path' => plugin_dir_path( dirname( __FILE__ ) ),
-			) );
+			$config = wp_parse_args(
+				$config,
+				[
+					'name' => 'Plugin Customizer',
+					'url'  => plugins_url( '', dirname( __FILE__ ) ),
+					'path' => plugin_dir_path( dirname( __FILE__ ) ),
+				]
+			);
 
-			$this->slug = sanitize_title( $config['name'] , 'plugin-customizer' );
+			$this->slug        = sanitize_title( $config['name'], 'plugin-customizer' );
 			$this->plugin_name = $config['name'];
 			$this->plugin_url  = $config['url'];
 			$this->plugin_root = $config['path'];
-			$this->url  = plugins_url( '/', __FILE__ );
-			$this->root = plugin_dir_path( __FILE__ );
+			$this->url         = plugins_url( '/', __FILE__ );
+			$this->root        = plugin_dir_path( __FILE__ );
 
 			/**
 			 * When saving the setinngs, the customizer settings must be visible for admin-ajax.php
 			 * so add it before the bailout test.
 			 */
-			add_action( 'wp_loaded', function() {
-				add_action( 'customize_register', array( $this, 'customizer_plugin_settings' ) );
-			}, $this->customize_register_priority );
+			add_action(
+				'wp_loaded',
+				function() {
+					add_action( 'customize_register', [ $this, 'customizer_plugin_settings' ] );
+				},
+				$this->customize_register_priority
+			);
 			/**
 			 * Bailout if not called from the plugin menu links.
 			 */
@@ -72,26 +79,38 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 			/**
 			 * Set the customizer title.
 			 */
-			add_filter( 'pre_option_blogname', function(){
-				return $this->plugin_name;
-			} );
+			add_filter(
+				'pre_option_blogname',
+				function() {
+					return $this->plugin_name;
+				}
+			);
 
 			/**
-			 * WordPres Customizer is dependant on functionality in the theme. Just in case
+			 * WordPress Customizer is dependant on functionality in the theme. Just in case
 			 * the current theme doesn't support WordPress Customizer we'll use a theme
 			 * that supports it.
 			 */
-			add_action( 'setup_theme', function() {
-				add_filter( 'theme_root', array( $this, 'switch_theme_root_path' ) );
-				add_filter( 'template_directory_uri', array( $this, 'switch_template_uri' ) );
-				add_filter( 'stylesheet_uri', array( $this, 'switch_template_uri' ) );
-				add_filter( 'pre_option_stylesheet', function(){
-					return $this->theme_name;
-				} );
-				add_filter( 'pre_option_template', function(){
-					return $this->theme_name;
-				} );
-			} );
+			add_action(
+				'setup_theme',
+				function() {
+					add_filter( 'theme_root', [ $this, 'switch_theme_root_path' ] );
+					add_filter( 'template_directory_uri', [ $this, 'switch_template_uri' ] );
+					add_filter( 'stylesheet_uri', [ $this, 'switch_template_uri' ] );
+					add_filter(
+						'pre_option_stylesheet',
+						function() {
+							return $this->theme_name;
+						}
+					);
+					add_filter(
+						'pre_option_template',
+						function() {
+							return $this->theme_name;
+						}
+					);
+				}
+			);
 			/**
 			 * Remove all other panels and sections from the customizer.
 			 */
@@ -104,22 +123,22 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 			 *
 			 * A 'how to create permalink' tutorial is at https://soderlind.no/wordpress-plugins-and-permalinks-how-to-use-pretty-links-in-your-plugin/
 			 */
-			add_filter( 'generate_rewrite_rules', array( $this, 'rewrite_rule' ) );
-			add_filter( 'query_vars', array( $this, 'query_vars' ) );
-			add_filter( 'admin_init', array( $this, 'flush_rewrite_rules' ) );
+			add_filter( 'generate_rewrite_rules', [ $this, 'rewrite_rule' ] );
+			add_filter( 'query_vars', [ $this, 'query_vars' ] );
+			add_filter( 'admin_init', [ $this, 'flush_rewrite_rules' ] );
 
 			/**
 			 * Parse request from js/plugin-customizer-preview-templates.js previewer script and load the template.
 			 */
-			add_action( 'parse_request', array( $this, 'template_loader' ) );
+			add_action( 'parse_request', [ $this, 'template_loader' ] );
 
 			/**
 			 * Enqueue previewer script.
 			 *
 			 * See https://make.xwp.co/2016/07/21/navigating-to-a-url-in-the-customizer-preview-when-a-section-is-expanded/
 			 */
-			add_action( 'customize_controls_enqueue_scripts', array( $this, 'plugin_customizer_configure_previewer' ) );
-			add_action( 'customize_controls_enqueue_scripts', array( $this, 'plugin_customizer_add_templates' ), 11 );
+			add_action( 'customize_controls_enqueue_scripts', [ $this, 'plugin_customizer_configure_previewer' ] );
+			add_action( 'customize_controls_enqueue_scripts', [ $this, 'plugin_customizer_add_templates' ], 11 );
 
 			/**
 			 * The plugin is using transport => postMessage, set in customizer_plugin_settings(), and needs
@@ -128,23 +147,27 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 			 * You can Learn more about postmessage at:
 			 * https://developer.wordpress.org/themes/advanced-topics/customizer-api/#using-postmessage-for-improved-setting-previewing
 			 */
-			add_action( 'customize_preview_init', array( $this, 'plugin_customizer_previewer_postmessage_script' ) );
+			add_action( 'customize_preview_init', [ $this, 'plugin_customizer_previewer_postmessage_script' ] );
 			/**
 			 * Register plugin customizer settings.
 			 */
-			add_action( 'wp_loaded', function() {
-				add_action( 'customize_register', array( $this, 'customizer_plugin_sections' ) );
-				add_action( 'customize_register', array( $this, 'customizer_plugin_controls' ) );
+			add_action(
+				'wp_loaded',
+				function() {
+					add_action( 'customize_register', [ $this, 'customizer_plugin_sections' ] );
+					add_action( 'customize_register', [ $this, 'customizer_plugin_controls' ] );
 
-				/**
-				 * If you plan to use selective refresh, set the transport in customizer_plugin_settings()
-				 * to 'refresh' and uncomment the line below. Also comment out the customize_preview_init action above.
-				 *
-				 * You can learn more about selective refresh at:
-				 * https://make.wordpress.org/core/2016/02/16/selective-refresh-in-the-customizer/
-				 */
-				// add_action( 'customize_register', array( $this, 'customizer_plugin_selective_refresh' ) );
-			}, $this->customize_register_priority );
+					/**
+					 * If you plan to use selective refresh, set the transport in customizer_plugin_settings()
+					 * to 'refresh' and uncomment the line below. Also comment out the customize_preview_init action above.
+					 *
+					 * You can learn more about selective refresh at:
+					 * https://make.wordpress.org/core/2016/02/16/selective-refresh-in-the-customizer/
+					 */
+					// add_action( 'customize_register', array( $this, 'customizer_plugin_selective_refresh' ) );
+				},
+				$this->customize_register_priority
+			);
 
 		}
 
@@ -155,13 +178,13 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 		 *
 		 * @author soderlind
 		 * @version 1.0.0
-		 * @param   Object	$wp_rewrite Permalink structure
-		 * @return  Array				 Rewrite rules
+		 * @param   Object $wp_rewrite Permalink structure
+		 * @return  Array                Rewrite rules
 		 */
 		function rewrite_rule( $wp_rewrite ) {
-			 $new_rules = array(
-				  sprintf( '%s/templates/(.*)$', $this->slug ) => sprintf( 'index.php?plugin-customizer-template-%s=%s', $this->slug, $wp_rewrite->preg_index( 1 ) ),
-			 );
+			 $new_rules = [
+				 sprintf( '%s/templates/(.*)$', $this->slug ) => sprintf( 'index.php?plugin-customizer-template-%s=%s', $this->slug, $wp_rewrite->preg_index( 1 ) ),
+			 ];
 
 			 $wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
 			 return $wp_rewrite->rules;
@@ -174,8 +197,8 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 		 *
 		 * @author soderlind
 		 * @version 1.0.0
-		 * @param   Array	$query_vars All defined query variables.
-		 * @return  Array				The updated array with query variables.
+		 * @param   Array $query_vars All defined query variables.
+		 * @return  Array               The updated array with query variables.
 		 */
 		function query_vars( $query_vars ) {
 			$query_vars[] = sprintf( 'plugin-customizer-template-%s', $this->slug );
@@ -223,13 +246,13 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 		 * Load the themplate and display the template if found
 		 *
 		 * Will try to locate the template in this order:
-		 *	1) [child-theme]/plugin-customizer/
-		 *	2) [parent-theme]/plugin-customizer/
-		 *	3) [plugin directory]/templates/
+		 *  1) [child-theme]/plugin-customizer/
+		 *  2) [parent-theme]/plugin-customizer/
+		 *  3) [plugin directory]/templates/
 		 *
 		 * @author soderlind
 		 * @version 1.0.0
-		 * @param   string	$template plugin_root to the template
+		 * @param   string $template plugin_root to the template
 		 */
 		private function _load_template( $template ) {
 			// from: https://developer.wordpress.org/reference/functions/load_template/#comment-727
@@ -255,26 +278,27 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 		 * @version 1.0.0
 		 */
 		public function plugin_customizer_configure_previewer() {
-			$src = $this->url . 'assets/js/plugin-customizer-preview-templates.js';
-			$deps = array( 'customize-controls' );
-			$version = PLUGIN_CUSTOMIZER_VERSION;
+			$src       = $this->url . 'assets/js/plugin-customizer-preview-templates.js';
+			$deps      = [ 'customize-controls' ];
+			$version   = PLUGIN_CUSTOMIZER_VERSION;
 			$in_footer = 1;
-			wp_enqueue_script( $this->slug, $src, $deps, $version , $in_footer );
+			wp_enqueue_script( $this->slug, $src, $deps, $version, $in_footer );
 		}
 
 		abstract public function plugin_customizer_add_templates();
 
 		public function template_url( $template ) {
-			$template = basename( $template, '.php' );
+			$template     = basename( $template, '.php' );
 			$template_url = home_url( sprintf( '%s/templates/%s/?%s=on', $this->slug, $template, $this->slug ) );
 
 			return $template_url;
 		}
 
-		public function add_templates( $default_url, $section_urls = array() ) {
+		public function add_templates( $default_url, $section_urls = [] ) {
 			wp_add_inline_script(
 				$this->slug,
-				sprintf( 'PluginCustomizer.init( %s, %s );',
+				sprintf(
+					'PluginCustomizer.init( %s, %s );',
 					wp_json_encode( $default_url ),
 					wp_json_encode( $section_urls )
 				),
@@ -284,6 +308,7 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 
 		/**
 		 * Load the preview script. The script is needed sice the transport is postmessage
+		 *
 		 * @author soderlind
 		 * @version 1.0.0
 		 */
@@ -294,9 +319,9 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 		 *
 		 * @author soderlind
 		 * @version 1.0.0
-		 * @param   string    $return_url        The URL to return to when closing the customizer.
-		 * @param   string    $autofocus_section Used for deep-linking, i.e. this section will be selected
-		 *                                       when the customizer is opened.
+		 * @param   string $return_url        The URL to return to when closing the customizer.
+		 * @param   string $autofocus_section Used for deep-linking, i.e. this section will be selected
+		 *                                    when the customizer is opened.
 		 * @return  string                       The customizer URL.
 		 */
 		public function get_customizer_url( $return_url = '', $autofocus_section = '' ) {
@@ -306,14 +331,14 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 			}
 			$url = wp_customize_url();
 			// Add parameter to identify this as a customizer url for this plugin.
-			$url = add_query_arg( $this->slug , 'on', $url );
+			$url = add_query_arg( $this->slug, 'on', $url );
 			// If autofocus, add parameter to url.
 			if ( '' !== $autofocus_section ) {
 				$url = add_query_arg( 'autofocus[section]', $autofocus_section, $url );
 			}
-			//Add parameter for return url.
+			// Add parameter for return url.
 			$url = add_query_arg( 'return', urlencode( $return_url ), $url );
-			//Sanitize url.
+			// Sanitize url.
 			$url = esc_url_raw( $url );
 			return $url;
 		}
@@ -332,7 +357,7 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 			}
 
 			$new_theme_root = $this->root . 'assets';
-			# Too early to use register_theme_directory()
+			// Too early to use register_theme_directory()
 			if ( ! in_array( $new_theme_root, $GLOBALS['wp_theme_directories'] ) ) {
 				$GLOBALS['wp_theme_directories'][] = $new_theme_root;
 			}
@@ -340,7 +365,7 @@ if ( ! class_exists( 'PluginCustomizer\Plugin_Customizer' ) ) {
 			return $new_theme_root;
 		}
 
-		public function switch_template_uri( $uri  ) {
+		public function switch_template_uri( $uri ) {
 			$new_theme_root_uri = $this->url . 'assets/' . $this->theme_name;
 			return $new_theme_root_uri;
 		}

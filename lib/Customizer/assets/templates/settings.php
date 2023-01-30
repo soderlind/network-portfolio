@@ -1,3 +1,4 @@
+<?php //phpcs:disable ?>
 <body>
 <style>
 body {
@@ -9,10 +10,12 @@ body {
   justify-content: center;
 }
 #info {
-    width: 90%;
-    height: 90%;
-    background-color: #EEE;
+	width: 90%;
+	height: 90%;
+	background-color: #EEE;
 	padding: 1em;
+	font-family: 'Open Sans', 'Franklin Gothic', Arial, sans-serif;
+	font-weight: 300;
 }
 img {
 	width: 800px;
@@ -22,10 +25,10 @@ img {
 <div id="info">
 <h1><?php _e( 'Settings', 'networkportfolio' ); ?></h1>
 <p>
-<?php _e( 'Enter your account details, you\'ll find them at' ,'networkportfolio' ); ?>  https://cloudinary.com/console
+<?php _e( 'Enter your account details, you\'ll find them at:', 'networkportfolio' ); ?>  https://cloudinary.com/console
 </p>
 <p>
-	<img src="<?php echo NETWORKPORTFOLIO_URL;?>lib/Customizer/assets/img/cloudinary-dashboard.png" />
+<?php _e( 'Cloudinary URL2PNG must be activated:', 'networkportfolio' ); ?>  https://cloudinary.com/console/lui/addons#url2png
 </p>
 </div>
 </body>
