@@ -12,7 +12,7 @@
  * Plugin URI:  https://github.com/soderlind/network-portfolio
  * Description:
  * Network: false
- * Version: 1.1.1
+ * Version: 1.1.2
  * Requires at least: 5.9
  * Requires PHP:      7.0
  * Author:      Per Soderlind
