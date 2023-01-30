@@ -64,6 +64,10 @@ When you have the prerequisites:
 
 == Changelog ==
 
+= 1.1.1 =
+
+* Add missing method
+
 = 1.1.0 =
 
 * Update Clodinary SDK to 2.x

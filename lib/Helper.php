@@ -70,6 +70,25 @@ if ( ! class_exists( 'NetworkPortfolio\Helper' ) ) {
 			return $validity;
 		}
 
+
+		/**
+		 * Check if the given cloudinary account is valid.
+		 *
+		 * @param string $cloud_name Cloud Name.
+		 * @param string $api_key    API Key.
+		 * @param string $api_secret API Secret.
+		 * @return bool
+		 */
+		public static function is_valid_cloudinary_account( string $cloud_name, string $api_key, string $api_secret ) : bool {
+			try {
+				Configuration::instance( "cloudinary://$api_key:$api_secret@$cloud_name?secure=true" );
+				( new AdminApi() )->ping();
+			} catch ( \Exception $e ) {
+				return false;
+			}
+			return true;
+		}
+
 		/**
 		 * Sanitize color code.
 		 *

@@ -12,7 +12,7 @@
  * Plugin URI:  https://github.com/soderlind/network-portfolio
  * Description:
  * Network: false
- * Version: 1.1.0
+ * Version: 1.1.1
  * Requires at least: 5.9
  * Requires PHP:      7.0
  * Author:      Per Soderlind
@@ -22,7 +22,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
-define( 'NETWORKPORTFOLIO_VERSION', '1.1.0' );
+define( 'NETWORKPORTFOLIO_VERSION', '1.1.1' );
 define( 'NETWORKPORTFOLIO_PATH', plugin_dir_path( __FILE__ ) );
 define( 'NETWORKPORTFOLIO_URL', plugin_dir_url( __FILE__ ) );
 
