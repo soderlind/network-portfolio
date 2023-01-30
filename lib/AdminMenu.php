@@ -89,11 +89,8 @@ if ( ! class_exists( 'NetworkPortfolio\AdminMenu' ) ) {
 			$url          = $pagenow;
 			$query_string = ( isset( $_SERVER['QUERY_STRING'] ) ) ? sanitize_text_field( wp_unslash( $_SERVER['QUERY_STRING'] ) ) : '';
 
-			$query_string = $_SERVER['QUERY_STRING'];
-
 			if ( ! empty( $query_string ) ) {
-				$url = add_query_arg( wp_parse_str( $query_string, [] ), $url );
-				// $url .= '?' . $query_string;
+				$url .= '?' . $query_string;
 			}
 			return $url;
 		}
