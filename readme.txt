@@ -2,24 +2,25 @@
 Contributors: PerS
 Donate link: http://example.com/
 Tags: webshot, screenshot, snapshot, cloudinary, url2png
-Requires at least: 4.6
-Tested up to: 4.7
-Stable tag: 1.0.19
+Requires at least: 5.9
+Tested up to: 6.1
+Stable tag: 1.1.0
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Capture snapshots of any website using the Cloudinary URL2PNG add-on.
+On a WordPress Multisite, display a portfolio of snapshots of your public sites.
 
 == Description ==
 
-Capture snapshots of any website using the [Cloudinary URL2PNG add-on](https://cloudinary.com/console/addons#url2png).
+
 
 = Use =
 
-Add link to the site you'd like to create a snapshot of, by using the `[networkportfolio]` shortcode, eg:
+Add link to the site you'd like to create a snapshot of, by using the `[portfolio]` shortcode, eg:
 
 `
-[networkportfolio url="https://wordpress.org"]
+[portfolio]
 `
 
 **Customize the snapshots**
@@ -30,44 +31,24 @@ Using the NetworkPortfolio Customizer you can change the size and border of the 
 
 You can override the NetworkPortfolio Customizer using the shortcode parameters, they are (with defaults):
 
-- url=home_url( '/' )
-- width=430
-- height=225
-- border_width=0
-- border_radius=0
-- border_color=#000000
+- sites   = 0 (all). Site IDs to include in the portfolio. 0 = all sites.
+- width   = 0 (Get the value from plugin customizer). Width of the snapshot.
+- height  = 0 (Get the value from plugin customizer). Height of the snapshot.
+- expires = 600 // 10 minutes. How long the snapshot should be cached.
+- orderby = 'modified=DESC&title=DESC'
+- num     = 0 (all). Max number of snapshots to show.
+- list    = false. Text lisr of the public sites in the portfolio.
+- all     = false
+- noshow  = ([]). Array of site IDs to exclude from the portfolio.
 
 `
-[networkportfolio url="https://wordpress.org" width="300" height="400" border_width="5"]
-`
-
-**Adding NetworkPortfolio to a theme**
-
-Using [do_shortcode()](https://developer.wordpress.org/reference/functions/do_shortcode/), you can add NetworkPortfolio to a theme:
-
-`
-
-echo do_shortcode( 'url="https://wordpress.org" width="300" height="400" border_width="5' );
-
-`
-
-or using the [shortcode_atts_{$shortcode}](https://developer.wordpress.org/reference/hooks/shortcode_atts_shortcode/) filter:
-
-`
-
-add_filter ('shortcode_atts_networkportfolio', 'add_url', 10, 3);
-function add_url ($out, $pairs, $atts ) {
-    $out['url'] = 'https://soderlind.no';
-    return $out;
-}
-
+[portfolio width="300" height="400" border_width="5"]
 `
 
 == Installation ==
 
 = Prerequisites =
 
-- PHP 5.6 (I use PHP 7.x on my development server)
 - A [Cloudinary account](https://cloudinary.com/signup)
 - Enable the [Cloudinary URL2PNG add-on](https://cloudinary.com/console/addons#url2png)
 
@@ -79,10 +60,13 @@ When you have the prerequisites:
 
 == Screenshots ==
 
-1. Demo
-2. Get the settings from the Cloudinary Dashboard
+
 
 == Changelog ==
+
+= 1.1.0 =
+
+* Update Clodinary SDK to 2.x
 
 = 1.0.3 =
 * Fix Cloudinary radius bug. Cloudinary draws a radius even though the radius = 0, so don't send radius parameter when it's 0.
