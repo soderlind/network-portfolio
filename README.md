@@ -1,19 +1,32 @@
 # NetworkPortfolio
 
-
 ## Description
+
+v2.0.0 is a simplified version, and only exposes the `[portfolio]` shortcode. The shortcode has the following attributes:
+
+- `sites` (int) Number of sites to display. Default is 0 (all sites).
+- `expires` (int) Number of seconds to cache the sites. Default is 600 (10 minutes).
+- `orderby` (string) Order the sites by. Default is 'modified=DESC&title=DESC'.
+- `theme` (string) List site using the theme. Default is ''.
+- `num` (int) Number of sites to display. Default is 0 (all sites).
+- `all` (bool) Show all sites. Default is true.
+- `noshow` (array) List of sites to exclude. Default is [].
+
+The shortcode lists sites in a network, and is used on the main site in a network. The sites are cached for the number of seconds specified in the `expires` attribute.
+
+The old version is still available in the [previous release](https://github.com/soderlind/network-portfolio/releases/tag/1.1.1).
 
 **TBA**
 
 ## Credits
-NetworkPortfolio is using:
+
+The old version is using:
+
 - The [Plugin Customizer](https://github.com/soderlind/plugin-customizer) framework.
 - The [WordPress Customizer Range Value Control](https://github.com/soderlind/class-customizer-range-value-control).
 - The [PHP extension for Cloudinary](https://github.com/cloudinary/cloudinary_php)
-- The [PSR-4 Autoloader](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader-examples.md#class-example)
 - The jQuery [boxShadow cssHooks](https://github.com/brandonaaron/jquery-cssHooks/blob/master/boxshadow.js), Copyright (c) 2010 Burin Asavesna (http://helloburin.com)
-    - I use CSS box-shadow to create [Better Rounded Borders](http://blog.teamtreehouse.com/css-tip-better-rounded-borders)
-
+  - I use CSS box-shadow to create [Better Rounded Borders](http://blog.teamtreehouse.com/css-tip-better-rounded-borders)
 
 ## Copyright and License
 
